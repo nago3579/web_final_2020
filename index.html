@@ -46,14 +46,18 @@
                 touch-action: none;
             }
         </style>
+        <script>
+          function load(){
+            alert("'W' to accelerate\n'S' to reverse\n'A' and 'D' to steer\n\nClick anywhere to start")
+          }
+        </script>
+
     </head>
 <body onload="load()">
-  <script>
-    function load(){
-      alert("'W' to accelerate\n'S' to reverse\n'A' and 'D' to steer\n\nClick 'OK' to start")
-    }
-  </script>
+
+
     <canvas id="renderCanvas"></canvas>
+
     <script>
         var canvas = document.getElementById("renderCanvas");
 
