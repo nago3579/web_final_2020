@@ -3,7 +3,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-        <title>Babylon.js sample code</title>
+        <title>Web Final 2020 - Nadiv</title>
 
         <!-- Babylon.js -->
         <script src="https://code.jquery.com/pep/0.4.2/pep.min.js"></script>
@@ -21,6 +21,15 @@
         <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
         <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
         <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+        <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+        <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://cdn.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://cdn.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
 
         <style>
             html, body {
@@ -38,7 +47,12 @@
             }
         </style>
     </head>
-<body>
+<body onload="load()">
+  <script>
+    function load(){
+      alert("'W' to accelerate\n'S' to reverse\n'A' and 'D' to steer\n\nClick 'OK' to start")
+    }
+  </script>
     <canvas id="renderCanvas"></canvas>
     <script>
         var canvas = document.getElementById("renderCanvas");
@@ -50,68 +64,351 @@
         var createScene = function () {
 
 var scene = new BABYLON.Scene(engine);
-        var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, BABYLON.Vector3.Zero(), scene);
-        var sun = new BABYLON.PointLight("Omni0", new BABYLON.Vector3(60, 100, 10), scene);
 
-        camera.setPosition(new BABYLON.Vector3(-20, 20, 0));
-        camera.attachControl(canvas);
+    var camera = new BABYLON.FollowCamera("FollowCam", new BABYLON.Vector3(0, 0, 0), scene);
 
-        // Ground
-        var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "textures/worldHeightMap.jpg", 100, 100, 100, 0, 10, scene, false);
-        var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
-        groundMaterial.diffuseTexture = new BABYLON.Texture("textures/earth.jpg", scene);
+    camera.radius = 1.5;
 
-        groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-        ground.position.y = -2.05;
-        ground.material = groundMaterial;
+    camera.heightOffset = 0.5;
 
-        // Sphere
-        var sphere = BABYLON.Mesh.CreateSphere("sphere", 16, 1, scene);
-        sphere.position.y = 10;
 
-        var angle = 0;
-        scene.registerBeforeRender(function() {
-            sphere.position.x = 10 * Math.cos(angle);
-            sphere.position.z = 10 * Math.sin(angle);
 
-            angle += 0.01;
 
-            // Casting a ray to get height
-            var ray = new BABYLON.Ray(new BABYLON.Vector3(sphere.position.x, ground.getBoundingInfo().boundingBox.maximumWorld.y + 1, sphere.position.z),
-                                        new BABYLON.Vector3(0, -1, 0)); // Direction
-            var worldInverse = new BABYLON.Matrix();
+    var sun = new BABYLON.PointLight("Omni0", new BABYLON.Vector3(60, 100, 10), scene);
 
-            ground.getWorldMatrix().invertToRef(worldInverse);
 
-            ray = BABYLON.Ray.Transform(ray, worldInverse);
+    // Ground
+    var mapx = 150;
+    var mapz = 150;
+    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "https://raw.githubusercontent.com/nago3579/web_final_2020/master/textures/map_final_height_4.png", mapx, mapz, 100, 0, 10, scene, false);
+    var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
+    groundMaterial.diffuseTexture = new BABYLON.Texture("https://raw.githubusercontent.com/nago3579/web_final_2020/master/textures/map_final.png", scene);
 
-            var pickInfo = ground.intersects(ray);
+    groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+    ground.position.y = -2.05;
+    ground.material = groundMaterial;
 
-            if (pickInfo.hit) {
-                sphere.position.y = pickInfo.pickedPoint.y + 0.5;
+    var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size:1000.0}, scene);
+    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+    skyboxMaterial.backFaceCulling = false;
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("https://raw.githubusercontent.com/nago3579/web_final_2020/master/textures/skybox/skybox", scene);
+    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+    skybox.material = skyboxMaterial;
+
+
+    // Custom Mesh
+    var box = BABYLON.Mesh.CreateBox("box", 1, scene);
+
+
+
+      box.position.y = 10;
+
+
+      camera.lockedTarget = box; //version 2.5 onwards
+
+
+      // Collisions
+      scene.collisionsEnabled = true;
+      camera.checkCollisions = true;
+      camera.ellipsoid = new BABYLON.Vector3(1,1,1);
+
+
+      box.checkCollisions = true;
+
+    // Sphere/Box
+    var materialBox = new BABYLON.StandardMaterial("texture", scene);
+    materialBox.diffuseColor = new BABYLON.Color3(0, 1, 0);//Green
+    materialBox.alpha = 0.0;
+    box.material = materialBox;
+
+    // Orbs that get you points
+    var materialOrb = new BABYLON.StandardMaterial("texture2", scene);
+    materialOrb.reflectionTexture =  new BABYLON.CubeTexture("https://raw.githubusercontent.com/nago3579/web_final_2020/master/textures/skybox/skybox", scene);;
+    materialOrb.microSurface = 0.96;
+    materialOrb.reflectivityColor = new BABYLON.Color3(0.94, 1, 0.08);
+    materialOrb.albedoColor = new BABYLON.Color3(0.01, 0.01, 0.01);
+
+    var sphere1 = BABYLON.Mesh.CreateSphere("sphere1", 20, 3.0, scene);
+    sphere1.position.x = 50;
+    sphere1.position.y = 0;
+    sphere1.position.z = -50;
+    sphere1.material = materialOrb;
+    sphere1.checkCollisions = true;
+
+    var sphere2 = BABYLON.Mesh.CreateSphere("sphere1", 20, 3.0, scene);
+    sphere2.position.x = -25;
+    sphere2.position.y = 9;
+    sphere2.position.z = 60;
+    sphere2.material = materialOrb;
+    sphere2.checkCollisions = true;
+
+    var sphere3 = BABYLON.Mesh.CreateSphere("sphere1", 20, 3.0, scene);
+    sphere3.position.x = 5;
+    sphere3.position.y = 6;
+    sphere3.position.z = -60;
+    sphere3.material = materialOrb;
+    sphere3.checkCollisions = true;
+
+
+    var total_points = 0;
+
+    box.actionManager = new BABYLON.ActionManager(scene);
+
+    box.actionManager.registerAction(
+        new BABYLON.ExecuteCodeAction(
+            {
+              trigger:BABYLON.ActionManager.OnIntersectionEnterTrigger,
+              parameter:sphere1
+            },
+            function(){
+               total_points++;
+              sphere1.dispose();
             }
-        });
+        )
+    );
 
-    // Leave this function
-    return scene;
+    box.actionManager.registerAction(
+        new BABYLON.ExecuteCodeAction(
+            {
+              trigger:BABYLON.ActionManager.OnIntersectionEnterTrigger,
+              parameter:sphere2
+            },
+            function(){
+               total_points++;
+              sphere2.dispose();
+            }
+        )
+    );
+
+    box.actionManager.registerAction(
+        new BABYLON.ExecuteCodeAction(
+            {
+              trigger:BABYLON.ActionManager.OnIntersectionEnterTrigger,
+              parameter:sphere3
+            },
+            function(){
+               total_points++;
+              sphere3.dispose();
+            }
+        )
+    );
+
+
+
+
+    // GUI Images
+    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    var image = new BABYLON.GUI.Image("", "https://raw.githubusercontent.com/nago3579/web_final_2020/master/textures/car_front.png");
+    image.stretch = BABYLON.GUI.Image.STRETCH_FILL;
+    advancedTexture.addControl(image);
+
+    var text1 = new BABYLON.GUI.TextBlock();
+    text1.text = "points: 0/3";
+    text1.color = "white";
+    text1.fontSize = 24;
+    text1.top = "-47%";
+    advancedTexture.addControl(text1);
+
+
+    var inputMap ={};
+    scene.actionManager = new BABYLON.ActionManager(scene);
+    scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, function (evt) {
+        inputMap[evt.sourceEvent.key] = evt.sourceEvent.type == "keydown";
+    }));
+    scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, function (evt) {
+        inputMap[evt.sourceEvent.key] = evt.sourceEvent.type == "keydown";
+    }));
+
+
+    // Gameplay Knobs
+    const MAX_SPEED = 0.50;
+    const MAX_HILL = 0.5;
+    const MAX_INERTIA = 30;
+    var speed = 0.50;
+    var deg = 0;
+    var inertia2d = 0;
+    var coefficient_of_friction = 50;
+    var car_handling = 2;
+    var gravity = 0.03;
+    var hill_climb = 0.5;
+
+
+
+    // Render the scene each frame
+    scene.registerBeforeRender(function() {
+
+      var axis = new BABYLON.Vector3(0, 1, 0);
+
+      // Math stuff
+      var angle = deg*0.0174533;
+      var cosinus = Math.cos(angle);
+      var sinus = Math.sin(angle);
+
+
+
+      text1.text = "points: " + total_points.toString() + "/3";
+
+      // Begin keyboard controls
+      if(inputMap["w"] || inputMap["ArrowUp"] && !mid_air){
+        image.source="https://raw.githubusercontent.com/nago3579/web_final_2020/master/textures/car_front.png";
+        box.position.x-=sinus*speed;
+        box.position.z-=cosinus*speed;
+        if(inertia2d < coefficient_of_friction){
+          inertia2d += 1;
+        }
+
+        if(inputMap["a"] || inputMap["ArrowLeft"]){
+
+          if(deg > 359){
+            deg = 1;
+          }
+          else if(deg < 1){
+            deg = 359;
+          }
+          deg -= car_handling;
+          angle = deg*0.0174533;
+          var quaternion = new BABYLON.Quaternion.RotationAxis(axis, angle);
+          box.rotationQuaternion = quaternion;
+      }
+
+        if(inputMap["d"] || inputMap["ArrowRight"]){
+
+          if(deg > 359){
+            deg = 0;
+          }
+          else if(deg < 1){
+            deg = 359;
+          }
+          deg+= car_handling;
+          angle = deg*0.0174533;
+          var quaternion = new BABYLON.Quaternion.RotationAxis(axis, angle);
+          box.rotationQuaternion = quaternion;
+        }
+
+      } else {
+        if(inertia2d > 1){
+          box.position.x-=sinus*(inertia2d * 0.01);
+          box.position.z-=cosinus*(inertia2d * 0.01);
+          inertia2d -=1;
+        }
+      }
+
+
+      if(inputMap["s"] || inputMap["ArrowDown"] && !mid_air){
+        image.source="https://raw.githubusercontent.com/nago3579/web_final_2020/master/textures/car_back.png";
+        box.position.x+=sinus*speed;
+        box.position.z+=cosinus*speed;
+
+        if(inputMap["a"] || inputMap["ArrowLeft"]){
+
+          if(deg > 359){
+            deg = 1;
+          }
+          else if(deg < 1){
+            deg = 359;
+          }
+          deg += car_handling;
+          angle = deg*0.0174533;
+          var quaternion = new BABYLON.Quaternion.RotationAxis(axis, angle);
+          box.rotationQuaternion = quaternion;
+      }
+
+        if(inputMap["d"] || inputMap["ArrowRight"]){
+
+          if(deg > 359){
+            deg = 0;
+          }
+          else if(deg < 1){
+            deg = 359;
+          }
+          deg -= car_handling;
+          angle = deg*0.0174533;
+          var quaternion = new BABYLON.Quaternion.RotationAxis(axis, angle);
+          box.rotationQuaternion = quaternion;
+        }
+      }
+
+
+      if(box.position.x > (mapx/2 -2)){
+        box.position.x = (mapx/2 -2);
+      }
+      if(box.position.x < -(mapx/2 -2)){
+        box.position.x = -(mapx/2 -2);
+      }
+      if(box.position.z > (mapz/2 -2)){
+        box.position.z = (mapz/2 -2);
+      }
+      if(box.position.z < -(mapz/2 -2)){
+        box.position.z = -(mapz/2 -2);
+      }
+
+      console.log("x pos: " + box.position.x);
+      console.log("y pos: " + box.position.y);
+      console.log("z pos: " + box.position.z);
+
+        // Casting a ray to get height
+        var ray = new BABYLON.Ray(new BABYLON.Vector3(box.position.x, ground.getBoundingInfo().boundingBox.maximumWorld.y + 1, box.position.z),
+                                    new BABYLON.Vector3(0, -1, 0)); // Direction
+        var worldInverse = new BABYLON.Matrix();
+
+        ground.getWorldMatrix().invertToRef(worldInverse);
+
+        ray = BABYLON.Ray.Transform(ray, worldInverse);
+
+        var pickInfo = ground.intersects(ray);
+
+        if (pickInfo.hit) {
+          if(pickInfo.pickedPoint.y + 1 < box.position.y){
+            var delta_gravity = window.setInterval(() => {
+              if (box.position.y < pickInfo.pickedPoint.y + 0.5) {
+                  window.clearInterval(delta_gravity);
+              } else {
+                // Fall due to gravity and contunue with forward motion
+                mid_air = true;
+                if(inertia2d > 1){
+                  box.position.x-=sinus*(inertia2d * 0.01);
+                  box.position.z-=cosinus*(inertia2d * 0.01);
+                  inertia2d -=1;
+                }
+                box.position.y -= gravity;
+              }
+            }, 100);
+
+          } else {
+            // Flat ground
+            speed = MAX_SPEED;
+            coefficient_of_friction = MAX_INERTIA;
+            box.position.y = pickInfo.pickedPoint.y + 0.8;
+          }
+        }
+    });
+
+return scene;
 
 };
 
-        engine = createDefaultEngine();
-        if (!engine) throw 'engine should not be null.';
-        scene = createScene();;
-        sceneToRender = scene
+    engine = createDefaultEngine();
+    if (!engine) throw 'engine should not be null.';
+    scene = createScene();;
+    sceneToRender = scene
 
-        engine.runRenderLoop(function () {
-            if (sceneToRender) {
-                sceneToRender.render();
-            }
-        });
+    engine.runRenderLoop(function () {
+        if (sceneToRender) {
+            sceneToRender.render();
+        }
+    });
 
-        // Resize
-        window.addEventListener("resize", function () {
-            engine.resize();
-        });
+    // Resize
+    window.addEventListener("resize", function () {
+        engine.resize();
+    });
+
+
+    // CREDITS
+    // Map art by Kat Wylder
+    // Engine, Skybox: Babylon.js
     </script>
 </body>
 </html>
