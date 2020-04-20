@@ -168,8 +168,8 @@ var scene = new BABYLON.Scene(engine);
             },
             function(){
                total_points++;
+              scene.removeMesh(sphere1);
               sphere1.dispose();
-              ground.dispose();
             }
         )
     );
@@ -182,8 +182,8 @@ var scene = new BABYLON.Scene(engine);
             },
             function(){
                total_points++;
+               scene.removeMesh(sphere2);
               sphere2.dispose();
-              ground.dispose();
             }
         )
     );
@@ -196,8 +196,8 @@ var scene = new BABYLON.Scene(engine);
             },
             function(){
                total_points++;
+              scene.removeMesh(sphere3);
               sphere3.dispose();
-              ground.dispose();
             }
         )
     );
