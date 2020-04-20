@@ -169,7 +169,7 @@ var scene = new BABYLON.Scene(engine);
             function(){
                total_points++;
               scene.removeMesh(sphere1);
-              sphere1.dispose();
+              sphere1.setEnabled(false);
             }
         )
     );
@@ -183,7 +183,7 @@ var scene = new BABYLON.Scene(engine);
             function(){
                total_points++;
                scene.removeMesh(sphere2);
-              sphere2.dispose();
+              sphere2.setEnabled(false);
             }
         )
     );
@@ -197,7 +197,7 @@ var scene = new BABYLON.Scene(engine);
             function(){
                total_points++;
               scene.removeMesh(sphere3);
-              sphere3.dispose();
+              sphere3.setEnabled(false);
             }
         )
     );
